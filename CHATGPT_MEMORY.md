@@ -337,3 +337,11 @@ Git history مرجع قطعی تمام تغییرات و نویسندگان اس
 - `npm test`: ۱۸ موفق، صفر شکست/skip؛ typecheck و build تولیدی موفق. HTTP تولیدی RTL، فیلتر/مرتب‌سازی انتخاب‌شده، صفحه‌بندی و حالت خالی را تأیید کرد؛ کاتالوگ نمونه اضافه نشد.
 - Java 17، Gradle 8.9، SDK 35: ۱۳۹ تست Android، صفر failure/error/skip؛ فرمان‌های استاندارد تست/lint/build موفق؛ lint بدون خطا با ۳۶ هشدار؛ APK ساخته و manifest/dex/TDLib arm64 بررسی شد. فایل‌های tracked تولیدشده پس از build بازیابی شدند؛ سورس Android تغییر نکرد.
 - CI موجود حفظ و job تست/typecheck/build وب و trigger شاخهٔ جدید اضافه شد. هیچ merge، release، force-push یا تغییر شاخهٔ پیش‌فرض انجام نشد. تست دستگاه، تلگرام زنده و بررسی بصری مرورگر اجرا نشدند. TASK-024 تا TASK-055 همچنان pending هستند.
+
+
+### 2026-10-15 — Account workflow audit: optional static project page
+
+- Confirmed both automatic Pages templates failed because the repository has no configured Pages site (GitHub check annotations: HTTP 404 from configure-pages). The separate Next.js application uses dynamic server routes and cannot run on GitHub Pages.
+- Replaced duplicate deployment templates with a single workflow that validates/packages only `docs/site/`, rejects symlinks, and deploys only after explicit manual `publish=true` on `main`. Added a minimal public project page and setup documentation. Repository root, private app data, project memory and APKs are not the site artifact.
+- Actual validation: `actionlint -shellcheck= .github/workflows/static.yml` and `git diff --check` passed. Existing web baseline: `npm ci`, `npm test` (26 passed), `npm run typecheck`, and `NEXT_TELEMETRY_DISABLED=1 npm run build` passed.
+- No Pages configuration was changed and no publication was attempted. The owner must configure Pages for GitHub Actions before manually publishing. Android/TDLib source and authentication were not modified by this change; live Telegram/device verification remains unperformed.
