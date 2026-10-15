@@ -1,43 +1,62 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
+name: Validate and optionally publish project page
 
 on:
-  # Runs on pushes targeting the default branch
   push:
-    branches: ["main"]
-
-  # Allows you to run this workflow manually from the Actions tab
+    branches: [main]
+    paths: ['docs/site/**', '.github/workflows/static.yml']
+  pull_request:
+    branches: [main]
+    paths: ['docs/site/**', '.github/workflows/static.yml']
   workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish the static project page (requires Pages configured for GitHub Actions)'
+        type: boolean
+        default: false
+        required: true
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
 
 jobs:
-  # Single deploy job since we're just deploying
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Validate public site directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s docs/site/index.html
+          # Publish only this allowlisted directory, never the checkout root.
+          if find docs/site -type l -print -quit | grep -q .; then
+            echo 'Symlinks are not allowed in the public site.' >&2
+            exit 1
+          fi
+      - name: Package public site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/site
+
   deploy:
+    if: github.event_name == 'workflow_dispatch' && inputs.publish && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          # Upload entire repository
-          path: '.'
-      - name: Deploy to GitHub Pages
+      - uses: actions/configure-pages@v5
+      - name: Deploy public site
         id: deployment
         uses: actions/deploy-pages@v5

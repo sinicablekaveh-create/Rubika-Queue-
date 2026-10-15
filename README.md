@@ -80,3 +80,9 @@ gradle --no-daemon testDebugUnitTest assembleDebug
 ## حافظهٔ پروژه برای ChatGPT و Codex
 
 برای ادامهٔ کار در نشست‌های بعدی، وضعیت فنی، گزارش فعالیت، نتایج آخرین اعتبارسنجی و اصول امنیتی در [CHATGPT_MEMORY.md](CHATGPT_MEMORY.md) نگهداری می‌شود. این فایل نباید شامل اطلاعات ورود، داده‌های خصوصی کاربران یا فایل نشست تلگرام باشد.
+
+## Optional static project page
+
+The Pages workflow validates and packages only `docs/site/`. It does not publish the repository root, Android sources, project memory, APKs, or the Next.js application. The previous static/Jekyll templates both attempted deployment on every push and failed because GitHub Pages was not configured.
+
+To publish the static project page, first enable **Settings → Pages → Build and deployment → GitHub Actions**, then manually run **Validate and optionally publish project page** from `main` with `publish=true`. Normal pushes and pull requests only validate/package the page. The server-rendered `web/` application and its API require a separate Node.js host; GitHub Pages cannot run them.
